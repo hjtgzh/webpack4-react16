@@ -5,8 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "webpack --profile --json > stats.json",
-    "start": "webpack-dev-server --port 3333 --mode development --config webpack.dev.js --watch",
-    "build": "webpack --mode production --config webpack.prod.js"
+    "start": "webpack-dev-server --port 3333 --mode development --watch",
+    "build": "webpack --mode production"
   },
   "author": "jianting",
   "license": "ISC",

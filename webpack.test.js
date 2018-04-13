@@ -1,26 +1,29 @@
 const path = require('path');
-const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const webpack = require('webpack');
+const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
 const CleanWebpackPlugin = require('clean-webpack-plugin');
 
 module.exports = {
-  entry: {
-    index: './src/index.js' //相对路径
-    // common_react: ['react', 'react-dom'] // 提取出React/Redux等依赖，避免重复打包
-  },
+  devtool: 'source-map',
+  entry: './src/index.js', //相对路径
   output: {
     path: path.resolve(__dirname, 'dist'), //打包文件的输出路径
-    filename: '[name].bundle.js' //打包文件名
+    filename: 'bundle.js' //打包文件名
   },
-  performance: {
-    hints: process.env.NODE_ENV === 'production' ? 'warning' : false // 去除asset size limit: The following asset(s) exceed the recommended size limit (244 KiB).
+  devServer: {
+    contentBase: './dist',
+    hot: true // 模块热替换,  webpack 内置的 HMR 插件
   },
   module: {
     rules: [
       // jsx语法使用
       {
         test: /\.jsx$|\.js$/,
-        loaders: 'babel-loader'
+        loaders: 'babel-loader',
+        query: {
+          presets: ['react', 'es2015']
+        }
       },
       // 使用css
       {
@@ -67,18 +70,27 @@ module.exports = {
       // 让webpack知道这就是我们的html入口文件
       template: './public/index.html', // 指定模板路径
       filename: 'index.html' // 指定文件名
+    }),
+    new webpack.NamedModulesPlugin(), // 以便更容易查看要修补(patch)的依赖
+    new webpack.HotModuleReplacementPlugin(),
+    new UglifyJSPlugin({
+      // 一个能够删除未引用代码(dead code)的压缩工具 ,如果只有new UglifyJSPlugin() 会报错
+      sourceMap: true
     })
-  ]
-  // optimization: {
-  //   splitChunks: {
-  //     cacheGroups: {
-  //       common_react: {
-  //         chunks: 'initial',
-  //         minChunks: 3,
-  //         name: 'common_react',
-  //         enforce: true
-  //       }
-  //     }
-  //   }
-  // }
+  ],
+  optimization: {
+    minimize: false,
+    splitChunks: {
+      cacheGroups: {
+        default: false,
+        commons: {
+          test: /jquery/,
+          name: 'vendor',
+          chunks: 'initial',
+          minSize: 1,
+          reuseExistingChunk: true
+        }
+      }
+    }
+  }
 };
